@@ -23,8 +23,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
 
+  // --- INICIO DE VARIABLES CA3 ---
+  bool _obscurePassword = true; // Controla la visibilidad de la contraseña
+  bool _isSimulatingLoad = false; // Controla el estado visual de carga
+  // --- FIN DE VARIABLES CA3 ---
+
   void _register() async {
     if (_formKey.currentState!.validate()) {
+      
+      // --- INICIO DE CA3: Simulación de retardo de 2 segundos ---
+      setState(() {
+        _isSimulatingLoad = true;
+      });
+      
+      await Future.delayed(const Duration(seconds: 2));
+      
+      if (!mounted) return;
+      
+      setState(() {
+        _isSimulatingLoad = false;
+      });
+      // --- FIN DE CA3 ---
+
       final authService = Provider.of<AuthService>(context, listen: false);
       final error = await authService.register(
         _emailController.text,
@@ -36,7 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (error == null) {
-        // 🔐 NUEVO: Mostrar diálogo de verificación
+        // Mostrar diálogo de verificación
         _showVerificationDialog();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  // 🔐 NUEVO: Metodo para envio de validacion de correo
+  // Metodo para envio de validacion de correo
   void _showVerificationDialog() {
     showDialog(
       context: context,
@@ -104,6 +124,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final theme = Theme.of(context);
+
+    // Evaluamos si está cargando por Firebase o por nuestra simulación del CA3
+    final bool isCurrentlyLoading = authService.isLoading || _isSimulatingLoad;
 
     return Scaffold(
       appBar: AppBar(
@@ -194,6 +217,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           
                           TextFormField(
                             controller: _nameController,
+                            keyboardType: TextInputType.name, // CA3: Teclado de nombres
                             decoration: InputDecoration(
                               labelText: 'Nombre completo',
                               prefixIcon: const Icon(Icons.person_outline),
@@ -212,6 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           
                           TextFormField(
                             controller: _emailController,
+                            keyboardType: TextInputType.emailAddress, // CA3: Teclado de email
                             decoration: InputDecoration(
                               labelText: 'Correo electrónico',
                               prefixIcon: const Icon(Icons.email_outlined),
@@ -223,12 +248,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Por favor ingresa tu email';
                               }
-                              // --- INICIO DE CA2: Validación de Correo ---
                               final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                               if (!emailRegex.hasMatch(value)) {
                                 return 'Ingresa un correo válido (ej: usuario@correo.com)';
                               }
-                              // --- FIN DE CA2 ---
                               return null; 
                             },
                           ),
@@ -236,10 +259,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           
                           TextFormField(
                             controller: _passwordController,
-                            obscureText: true,
+                            obscureText: _obscurePassword, // CA3: Ocultar caracteres dinámicamente
+                            keyboardType: TextInputType.visiblePassword,
                             decoration: InputDecoration(
                               labelText: 'Contraseña',
                               prefixIcon: const Icon(Icons.lock_outline),
+                              // CA3: Botón para mostrar/ocultar contraseña
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -248,12 +283,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Por favor ingresa tu contraseña';
                               }
-                              // --- INICIO DE CA2: Validación de Contraseña ---
                               final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$');
                               if (!passwordRegex.hasMatch(value)) {
                                 return 'Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número';
                               }
-                              // --- FIN DE CA2 ---
                               return null; 
                             },
                           ),
@@ -261,6 +294,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           
                           TextFormField(
                             controller: _phoneController,
+                            keyboardType: TextInputType.phone, // CA3: Teclado numérico
                             decoration: InputDecoration(
                               labelText: 'Teléfono (opcional)',
                               prefixIcon: const Icon(Icons.phone_outlined),
@@ -270,9 +304,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                           ),
                           
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 24),
                           
-                          // Botón con gradiente
+                          // Botón con gradiente y lógica combinada de carga
                           DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: AppTheme.primaryGradient,
@@ -288,7 +322,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: authService.isLoading ? null : _register,
+                                onPressed: isCurrentlyLoading ? null : _register,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
                                   shadowColor: Colors.transparent,
@@ -297,7 +331,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                child: authService.isLoading
+                                child: isCurrentlyLoading
                                     ? SizedBox(
                                         width: 20,
                                         height: 20,
