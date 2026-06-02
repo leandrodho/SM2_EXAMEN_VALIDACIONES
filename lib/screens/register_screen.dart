@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (error == null) {
-        // 🔐 NUEVO: Mostrar diálogo de verificación (no navegar a Home)
+        // 🔐 NUEVO: Mostrar diálogo de verificación
         _showVerificationDialog();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -192,8 +192,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Column(
                         children: [
                           
-                          // --- INICIO DE CAMPOS REEMPLAZADOS PARA CA1 ---
-                          
                           TextFormField(
                             controller: _nameController,
                             decoration: InputDecoration(
@@ -225,7 +223,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Por favor ingresa tu email';
                               }
-                              return null; // En el CA2 inyectaremos la RegExp aquí
+                              // --- INICIO DE CA2: Validación de Correo ---
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(value)) {
+                                return 'Ingresa un correo válido (ej: usuario@correo.com)';
+                              }
+                              // --- FIN DE CA2 ---
+                              return null; 
                             },
                           ),
                           const SizedBox(height: 12),
@@ -244,7 +248,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Por favor ingresa tu contraseña';
                               }
-                              return null; // En el CA2 inyectaremos la RegExp aquí
+                              // --- INICIO DE CA2: Validación de Contraseña ---
+                              final passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$');
+                              if (!passwordRegex.hasMatch(value)) {
+                                return 'Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número';
+                              }
+                              // --- FIN DE CA2 ---
+                              return null; 
                             },
                           ),
                           const SizedBox(height: 12),
@@ -259,8 +269,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                           ),
-                          
-                          // --- FIN DE CAMPOS REEMPLAZADOS PARA CA1 ---
                           
                           const SizedBox(height: 12),
                           
