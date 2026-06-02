@@ -4,10 +4,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../widgets/auth_text_field.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
+// Se omitió la importación de AuthTextField para cumplir con el uso de widgets nativos
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -36,11 +36,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
 
       if (error == null) {
-        /*Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-          (route) => false,
-        );*/
         // 🔐 NUEVO: Mostrar diálogo de verificación (no navegar a Home)
         _showVerificationDialog();
       } else {
@@ -50,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
   }
+
   // 🔐 NUEVO: Metodo para envio de validacion de correo
   void _showVerificationDialog() {
     showDialog(
@@ -194,116 +190,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
-                      children: [
-                        AuthTextField(
-                label: 'Nombre completo',
-                icon: Icons.person,
-                controller: _nameController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu nombre';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              
-              AuthTextField(
-                label: 'Correo electrónico',
-                icon: Icons.email,
-                keyboardType: TextInputType.emailAddress,
-                controller: _emailController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu email';
-                  }
-                  final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-                  if (!emailRegex.hasMatch(value)) {
-                    return 'Ingresa un email válido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              
-              AuthTextField(
-                label: 'Contraseña',
-                icon: Icons.lock,
-                obscureText: true,
-                controller: _passwordController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu contraseña';
-                  }
-                  if (value.length < 6) {
-                    return 'La contraseña debe tener al menos 6 caracteres';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              
-              AuthTextField(
-                label: 'Teléfono (opcional)',
-                icon: Icons.phone,
-                keyboardType: TextInputType.phone,
-                controller: _phoneController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) return null;
-                  final phoneRegex = RegExp(r'^\+?[0-9]{7,15}$');
-                  if (!phoneRegex.hasMatch(value)) return 'Ingresa un teléfono válido';
-                  return null;
-                },
-              ),
-                        const SizedBox(height: 12),
-                        
-                        // Botón con gradiente
-                        DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.primaryGradient,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
+                        children: [
+                          
+                          // --- INICIO DE CAMPOS REEMPLAZADOS PARA CA1 ---
+                          
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: InputDecoration(
+                              labelText: 'Nombre completo',
+                              prefixIcon: const Icon(Icons.person_outline),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ],
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Por favor ingresa tu nombre';
+                              }
+                              return null;
+                            },
                           ),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: authService.isLoading ? null : _register,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                          const SizedBox(height: 12),
+                          
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Correo electrónico',
+                              prefixIcon: const Icon(Icons.email_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              child: authService.isLoading
-                                  ? SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
-                                      ),
-                                    )
-                                  : Text(
-                                      'Crear Cuenta',
-                                      style: theme.textTheme.labelLarge?.copyWith(
-                                        color: theme.colorScheme.onPrimary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Por favor ingresa tu email';
+                              }
+                              return null; // En el CA2 inyectaremos la RegExp aquí
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              labelText: 'Contraseña',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Por favor ingresa tu contraseña';
+                              }
+                              return null; // En el CA2 inyectaremos la RegExp aquí
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          
+                          TextFormField(
+                            controller: _phoneController,
+                            decoration: InputDecoration(
+                              labelText: 'Teléfono (opcional)',
+                              prefixIcon: const Icon(Icons.phone_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          
+                          // --- FIN DE CAMPOS REEMPLAZADOS PARA CA1 ---
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Botón con gradiente
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: AppTheme.primaryGradient,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: authService.isLoading ? null : _register,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: authService.isLoading
+                                    ? SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.onPrimary),
+                                        ),
+                                      )
+                                    : Text(
+                                        'Crear Cuenta',
+                                        style: theme.textTheme.labelLarge?.copyWith(
+                                          color: theme.colorScheme.onPrimary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   ),
                 ],
               ),
@@ -322,4 +329,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _phoneController.dispose();
     super.dispose();
   }
-} 
+}
